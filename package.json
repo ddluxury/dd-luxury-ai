@@ -1,0 +1,13 @@
+
+{
+  "name": "dd-luxury-ai",
+  "version": "1.0.0",
+  "description": "Agent IA WhatsApp pour DD LUXURY",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
