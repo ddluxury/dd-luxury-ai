@@ -1,9 +1,16 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const allowedOrigin = "https://ddluxury.netlify.app";
+    const allowedOrigins = [
+      "https://ddluxury.netlify.app",
+      "http://127.0.0.1:5500",
+      "http://localhost:5500"
+    ];
+    const origin = request.headers.get("Origin");
     const corsHeaders = {
-      "Access-Control-Allow-Origin": allowedOrigin,
+      ...(origin && allowedOrigins.includes(origin)
+        ? { "Access-Control-Allow-Origin": origin }
+        : {}),
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Vary": "Origin"
