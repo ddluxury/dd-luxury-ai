@@ -53,28 +53,23 @@ Pose une seule question à la fois lorsque tu as besoin d'une précision.`;
             { role: "system", content: systemPrompt },
             { role: "user", content: message }
           ],
-          max_completion_tokens: 400,
-          temperature: 0.6
+          max_completion_tokens: 600,
+          temperature: 0.6,
+          chat_template_kwargs: {
+            enable_thinking: false,
+            clear_thinking: true
+          }
         });
 
-        console.log("Diagnostic Workers AI :", {
-          keys: result && typeof result === "object" ? Object.keys(result) : [],
-          responseType: typeof result?.response,
-          choicesType: typeof result?.choices,
-          choicesLength: Array.isArray(result?.choices) ? result.choices.length : null,
-          firstChoiceKeys: result?.choices?.[0] && typeof result.choices[0] === "object" ? Object.keys(result.choices[0]) : [],
-          finishReason: result?.choices?.[0]?.finish_reason ?? null,
-          stopReason: result?.choices?.[0]?.stop_reason ?? null,
-          messageKeys: result?.choices?.[0]?.message && typeof result.choices[0].message === "object" ? Object.keys(result.choices[0].message) : [],
-          messageContentType: typeof result?.choices?.[0]?.message?.content,
-          messageContent: result?.choices?.[0]?.message?.content ?? null
-        });
-
-        const reply = result?.choices?.[0]?.message?.content
-          ?? result?.response
-          ?? result?.output_text
-          ?? result?.result?.response
-          ?? "Je suis désolé, je n'ai pas réussi à formuler une réponse. Peux-tu réessayer ?";
+        const rawContent = result?.choices?.[0]?.message?.content;
+        const reply = typeof rawContent === "string"
+          ? rawContent
+          : Array.isArray(rawContent)
+            ? rawContent.map((part) => typeof part === "string" ? part : part?.text ?? "").join("")
+            : result?.response
+              ?? result?.output_text
+              ?? result?.result?.response
+              ?? "Je suis désolé, je n'ai pas réussi à formuler une réponse. Peux-tu réessayer ?";
 
         return new Response(
           JSON.stringify({ reply }),
