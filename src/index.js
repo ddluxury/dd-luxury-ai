@@ -57,8 +57,18 @@ Pose une seule question à la fois lorsque tu as besoin d'une précision.`;
           temperature: 0.6
         });
 
+        console.log("Diagnostic Workers AI :", {
+          keys: result && typeof result === "object" ? Object.keys(result) : [],
+          responseType: typeof result?.response,
+          choicesType: typeof result?.choices,
+          choicesLength: Array.isArray(result?.choices) ? result.choices.length : null,
+          firstChoiceKeys: result?.choices?.[0] && typeof result.choices[0] === "object" ? Object.keys(result.choices[0]) : []
+        });
+
         const reply = result?.choices?.[0]?.message?.content
           ?? result?.response
+          ?? result?.output_text
+          ?? result?.result?.response
           ?? "Je suis désolé, je n'ai pas réussi à formuler une réponse. Peux-tu réessayer ?";
 
         return new Response(
