@@ -2,5 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dd-luxury-ai",
   "main": "src/index.js",
-  "compatibility_date": "2026-11-19"
+  "compatibility_date": "2026-11-19",
+  "ai": {
+    "binding": "AI"
+  }
 }
