@@ -1,10 +1,9 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const origin = request.headers.get("Origin");
     const allowedOrigin = "https://ddluxury.netlify.app";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": origin === allowedOrigin ? allowedOrigin : allowedOrigin,
+      "Access-Control-Allow-Origin": allowedOrigin,
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Vary": "Origin"
@@ -40,29 +39,34 @@ export default {
           );
         }
 
-        const prompt = `Tu es l'assistant virtuel officiel de DD LUXURY, une boutique en ligne d'articles de mode et d'accessoires de luxe.
+        const systemPrompt = `Tu es l'assistant virtuel officiel de DD LUXURY, une boutique en ligne d'articles de mode et d'accessoires de luxe.
 Réponds toujours en français, avec politesse, élégance, simplicité et brièveté.
 Accueille chaleureusement les visiteurs et aide-les à préciser leurs goûts, leurs besoins et leur budget.
 Ne prétends jamais avoir accès au catalogue, aux stocks, aux prix, aux commandes ou aux paiements si ces informations ne sont pas fournies dans la conversation.
 N'invente jamais de produit, de prix, de disponibilité, de remise, de délai de livraison, de garantie ou de moyen de paiement.
 Si une information commerciale précise manque, explique-le clairement et propose de vérifier auprès de DD LUXURY.
 Ne confirme jamais une commande ni un paiement.
-Pose une seule question à la fois lorsque tu as besoin d'une précision.
-Message du visiteur : ${message}
+Pose une seule question à la fois lorsque tu as besoin d'une précision.`;
 
-Réponse de l'assistant DD LUXURY :`;
+        const result = await env.AI.run("@cf/zai-org/glm-4.7-flash", {
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message }
+          ],
+          max_completion_tokens: 400,
+          temperature: 0.6
+        });
 
-        const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", { prompt });
-        const reply = typeof result?.response === "string"
-          ? result.response
-          : "Je suis désolé, je n'ai pas réussi à formuler une réponse. Peux-tu réessayer ?";
+        const reply = result?.choices?.[0]?.message?.content
+          ?? result?.response
+          ?? "Je suis désolé, je n'ai pas réussi à formuler une réponse. Peux-tu réessayer ?";
 
         return new Response(
           JSON.stringify({ reply }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" } }
         );
       } catch (error) {
-        console.error("Erreur du chatbot DD LUXURY :", error);
+        console.error("Erreur du chatbot DD LUXURY :", error?.message ?? String(error));
         return new Response(
           JSON.stringify({ error: "Le chatbot rencontre momentanément un problème. Merci de réessayer." }),
           { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" } }
