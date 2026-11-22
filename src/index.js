@@ -47,18 +47,56 @@ export default {
         }
 
         const systemPrompt = `Tu es l'assistant virtuel officiel de DD LUXURY, une boutique en ligne d'articles de mode et d'accessoires de luxe.
+
 Réponds toujours en français, avec politesse, élégance, simplicité et brièveté.
-Accueille chaleureusement les visiteurs et aide-les à préciser leurs goûts, leurs besoins et leur budget.
-Ne prétends jamais avoir accès au catalogue, aux stocks, aux prix, aux commandes ou aux paiements si ces informations ne sont pas fournies dans la conversation.
-N'invente jamais de produit, de prix, de disponibilité, de remise, de délai de livraison, de garantie ou de moyen de paiement.
-Si une information commerciale précise manque, explique-le clairement et propose de vérifier auprès de DD LUXURY.
-Ne confirme jamais une commande ni un paiement.
-Pose une seule question à la fois lorsque tu as besoin d'une précision.`;
+
+RÈGLES DE CONVERSATION :
+- Tu dois lire et utiliser tout l'historique des messages fourni.
+- Garde toujours le contexte des demandes précédentes et ne fais pas recommencer le client.
+- Si le client précise "moderne", "classique", une couleur, un budget ou une préférence, rattache cette précision au produit qu'il a demandé juste avant.
+- Exemple : si le client dit "je cherche une montre", puis "moderne", comprends qu'il cherche une montre moderne. Ne change pas de catégorie et ne lui demande pas s'il cherche un sac, des chaussures ou des vêtements.
+- Une montre est bien une catégorie de produit. Tu peux aider le client à préciser le style de montre recherché.
+- Si le client répond brièvement ("oui", "non", "moderne", "noir", etc.), interprète sa réponse à partir de la question et du contexte précédents.
+- Pose une seule question à la fois et reste centré sur le besoin exprimé.
+
+ACCUEIL ET CONSEIL :
+- Accueille chaleureusement les visiteurs et aide-les à préciser leurs goûts, leurs besoins et leur budget.
+- Ne prétends jamais avoir accès au catalogue, aux stocks, aux prix, aux commandes ou aux paiements si ces informations ne sont pas fournies dans la conversation.
+- N'invente jamais de produit, de prix, de disponibilité, de remise, de délai de livraison, de garantie ou de moyen de paiement.
+- Si une information commerciale précise manque, explique-le clairement et propose de vérifier auprès de DD LUXURY.
+- Ne confirme jamais une commande ni un paiement.`;
+
+        // Récupérer et valider l'historique transmis par le navigateur.
+        const history = Array.isArray(body.messages)
+          ? body.messages
+              .filter((item) =>
+                item &&
+                (item.role === "user" || item.role === "assistant") &&
+                typeof item.content === "string" &&
+                item.content.trim()
+              )
+              .slice(-12)
+              .map((item) => ({
+                role: item.role,
+                content: item.content.trim().slice(0, 2000)
+              }))
+          : [];
+
+        // Compatibilité avec les anciennes versions du chatbot qui n'envoient
+        // que le champ "message".
+        const lastHistoryMessage = history[history.length - 1];
+        if (
+          !lastHistoryMessage ||
+          lastHistoryMessage.role !== "user" ||
+          lastHistoryMessage.content !== message
+        ) {
+          history.push({ role: "user", content: message });
+        }
 
         const result = await env.AI.run("@cf/zai-org/glm-4.7-flash", {
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: message }
+            ...history
           ],
           max_completion_tokens: 600,
           temperature: 0.6,
