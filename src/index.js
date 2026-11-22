@@ -62,7 +62,12 @@ Pose une seule question à la fois lorsque tu as besoin d'une précision.`;
           responseType: typeof result?.response,
           choicesType: typeof result?.choices,
           choicesLength: Array.isArray(result?.choices) ? result.choices.length : null,
-          firstChoiceKeys: result?.choices?.[0] && typeof result.choices[0] === "object" ? Object.keys(result.choices[0]) : []
+          firstChoiceKeys: result?.choices?.[0] && typeof result.choices[0] === "object" ? Object.keys(result.choices[0]) : [],
+          finishReason: result?.choices?.[0]?.finish_reason ?? null,
+          stopReason: result?.choices?.[0]?.stop_reason ?? null,
+          messageKeys: result?.choices?.[0]?.message && typeof result.choices[0].message === "object" ? Object.keys(result.choices[0].message) : [],
+          messageContentType: typeof result?.choices?.[0]?.message?.content,
+          messageContent: result?.choices?.[0]?.message?.content ?? null
         });
 
         const reply = result?.choices?.[0]?.message?.content
